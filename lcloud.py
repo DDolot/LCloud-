@@ -28,5 +28,32 @@ def list_files(prefix):
 
 
 
+def upload_file_to_s3(bucket_name, s3_file, file_path):
+    if not s3_file.startswith(PREFIX):
+        print(f'Error: The file key "{s3_file}" must start with the prefix "{PREFIX}".')
+        return
+
+    try:
+        s3_object = sessionResource.Object(bucket_name, s3_file)
+
+        with open(file_path, 'rb') as file_data:
+            result = s3_object.put(Body=file_data)
+        
+
+        res = result.get('ResponseMetadata')
+        if res.get('HTTPStatusCode') == 200:
+            print("File uploaded succesfully")
+        else:
+            print("File was not uploaded succesfully")
+    except Exception as e:
+        print(f'Error uploading file: {e}')
+
+
+
+
+
+
+
+
 
 
