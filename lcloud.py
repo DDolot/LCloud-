@@ -19,16 +19,16 @@ sessionResource = session.resource('s3')
 
 my_bucket = sessionResource.Bucket(BUCKET_NAME)
 
+
+
+
 def list_files(prefix):
     for objects in my_bucket.objects.filter(Prefix=PREFIX):
         print(objects.key)
 
 
 
-
-
-
-def upload_file_to_s3(bucket_name, s3_file, file_path):
+def upload_file(bucket_name, s3_file, file_path):
     if not s3_file.startswith(PREFIX):
         print(f'Error: The file key "{s3_file}" must start with the prefix "{PREFIX}".')
         return
@@ -49,11 +49,43 @@ def upload_file_to_s3(bucket_name, s3_file, file_path):
         print(f'Error uploading file: {e}')
 
 
+def list_files_with_filter(bucket_name, prefix, regex):
+    response = my_bucket.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX)
+
+    if 'Contents' in response:
+        for obj in response['Contents']:
+            if re.match(regex, obj['Key']):
+                print(obj['Key'])
+    else:
+        print("No files found.")
+
+def delete_files_with_filter(bucket_name, prefix, regex):
+    response = my_bucket.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX)
+
+    if 'Contents' in response:
+        for obj in response['Contents']:
+            if re.match(regex, obj['Key']):
+                sessionResource.delete_object(Bucket=bucket_name, Key=obj['Key'])
+                print(f"Deleted: {obj['Key']}")
+    else:
+        print("No files found.")
 
 
+def main():
+   
+    list_files(PREFIX)
 
+    local_file = r'C:\Users\Admin\Desktop\LCloud\textfile'  
+    s3_file = PREFIX + 'textfile.txt'  
+    upload_file(BUCKET_NAME,local_file, s3_file)
 
+   
+    list_files_with_filter(BUCKET_NAME,PREFIX,r'.*\.py$') 
 
+   
+    delete_files_with_filter(BUCKET_NAME,PREFIX,r'.*\.txt$')  
 
+if __name__ == "__main__":
+    main()
 
 
